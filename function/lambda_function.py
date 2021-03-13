@@ -1,4 +1,5 @@
 import json
+from urllib.parse import parse_qsl
 
 from fuzzywuzzy import process
 
@@ -19,10 +20,10 @@ def lambda_handler(event: dict, context):
         return resp
 
     try:
-        payload: dict = json.loads(event.get("body"))
+        payload = dict(parse_qsl(event.get("body")))
     except json.JSONDecodeError:
         resp["statusCode"] = 400
-        resp["body"] = "Invalid JSON"
+        resp["body"] = "Invalid payload"
         return resp
 
     art_map = {i["title"]: i for i in art}
