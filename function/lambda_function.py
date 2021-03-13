@@ -1,5 +1,6 @@
 import json
 from urllib.parse import parse_qsl
+import base64
 
 from fuzzywuzzy import process
 
@@ -19,13 +20,10 @@ def lambda_handler(event: dict, context):
     if event.get("requestContext", {}).get("http", {}).get("method", "") == "OPTIONS":
         return resp
 
-    try:
-        payload = dict(parse_qsl(event.get("body")))
-    except json.JSONDecodeError:
-        resp["statusCode"] = 400
-        resp["body"] = "Invalid payload"
-        return resp
-
+    body = event.get("body")
+    if event.get("isBase64Encoded"):
+        body = base64.b64decode(body).decode("utf-8")
+    payload = dict(parse_qsl(body))
     art_map = {i["title"]: i for i in art}
     art_name = payload.get("text")
     output = process.extractOne(art_name, art_map.keys())[0]
